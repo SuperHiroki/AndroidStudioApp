@@ -1,3 +1,4 @@
+//photo_item.dart
 class PhotoItem {
   final int id;
   final String name;
