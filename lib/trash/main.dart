@@ -1,7 +1,7 @@
 //main.dart
 import 'package:flutter/material.dart';
 import 'db_helper.dart'; // DBHelper クラスが定義されているファイルをインポート
-import 'trash/add_photo_item_form.dart'; // 新しいインポート
+import 'add_photo_item_form.dart'; // 新しいインポート
 import 'new_page.dart'; // 新しいインポート
 import 'folder_page.dart'; // FolderPageをインポート
 
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: Text('最近使ったメモ'),
+          title: Text('Photo Item App'),
           leading: Builder( // Builderを使用して適切なコンテキストを提供
             builder: (BuildContext context) {
               return IconButton(

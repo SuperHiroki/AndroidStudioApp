@@ -5,8 +5,8 @@ import 'photo_item.dart';
 import 'dart:async';
 
 class MemoPage extends StatefulWidget {
-  final int? folderId;
   final int? memoId; // メモのID
+  final int? folderId;
 
   MemoPage({this.folderId, this.memoId});
 
@@ -19,11 +19,13 @@ class _MemoPageState extends State<MemoPage> {
   TextEditingController _textController = TextEditingController();
   Timer? _debounce;
   int? _memoId; // メモのIDを保持するための変数
+  int? _folderId;
 
   @override
   void initState() {
     super.initState();
     _memoId = widget.memoId;
+    _folderId = widget.folderId;
     _titleController.addListener(_onTextChanged);
     _textController.addListener(_onTextChanged);
     if (_memoId != null) {
@@ -51,13 +53,17 @@ class _MemoPageState extends State<MemoPage> {
     String title = _titleController.text;
     String description = _textController.text;
 
+    if(title == ''){
+      title = "No Title";
+    }
+
     if (_memoId == null) {
       PhotoItem newItem = PhotoItem(
         id: DateTime.now().millisecondsSinceEpoch,
         name: title,
         description: description,
         imagePath: "default",
-        folderId: widget.folderId ?? 0,
+        folderId: _folderId,
       );
       DBHelper.insertPhotoItem(newItem).then((int newId) {
         setState(() {

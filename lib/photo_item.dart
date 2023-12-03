@@ -3,7 +3,7 @@ class PhotoItem {
   final String name;
   final String description;
   final String imagePath;
-  final int folderId; // このアイテムが属するフォルダのID
+  final int? folderId; // このアイテムが属するフォルダのID
 
   PhotoItem({
     required this.id,

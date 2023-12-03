@@ -7,7 +7,7 @@ class NewPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Page'),
+        title: Text('メモの作成、編集'),
       ),
       body: FutureBuilder<List<PhotoItem>>(
         future: DBHelper.getPhotoItems(),

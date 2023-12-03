@@ -133,7 +133,7 @@ class _FolderPageState extends State<FolderPage> {
       ),
       body: ListView.builder(
         itemCount: items.length,
-        itemBuilder: (context, index) => buildFolderItem(items[index],0),
+        itemBuilder: (context, index) => buildFolderItem(items[index], 0),
       ),
     );
   }
