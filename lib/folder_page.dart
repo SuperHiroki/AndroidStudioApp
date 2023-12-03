@@ -256,7 +256,6 @@ class _FolderPageState extends State<FolderPage> {
     await DBHelper.deleteFolder(folderId);
   }
 
-
   void _showMoveItemDialog(dynamic item) {
     showDialog(
       context: context,
@@ -272,20 +271,24 @@ class _FolderPageState extends State<FolderPage> {
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return Text('フォルダがありません');
               }
+              var foldersWithDepth = addDepthToFolderList(snapshot.data!);
               return Container(
                 height: 200.0, // 固定された高さ
                 width: double.maxFinite,
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: snapshot.data!.length,
+                  itemCount: foldersWithDepth.length,
                   itemBuilder: (context, index) {
-                    var folder = snapshot.data![index];
-                    return ListTile(
-                      title: Text(folder.name),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        _moveItem(item, folder.id); // アイテムを選択したフォルダに移動
-                      },
+                    var folderWithDepth = foldersWithDepth[index];
+                    return Padding(
+                      padding: EdgeInsets.only(left: folderWithDepth.depth * 20.0),
+                      child: ListTile(
+                        title: Text(folderWithDepth.folder.name),
+                        onTap: () {
+                          Navigator.of(context).pop();
+                          _moveItem(item, folderWithDepth.folder.id); // アイテムを選択したフォルダに移動
+                        },
+                      ),
                     );
                   },
                 ),
@@ -302,6 +305,8 @@ class _FolderPageState extends State<FolderPage> {
       },
     );
   }
+
+
 
 
   Future<void> _moveItem(dynamic item, int newFolderId) async {
@@ -358,4 +363,32 @@ class _FolderPageState extends State<FolderPage> {
 
 
 }
+
+// フォルダの階層情報を持つクラス
+class FolderWithDepth {
+  final Folder folder;
+  final int depth;
+
+  FolderWithDepth(this.folder, this.depth);
+}
+
+
+
+List<FolderWithDepth> addDepthToFolderList(List<Folder> allFolders) {
+  List<FolderWithDepth> folderWithDepthList = [];
+
+  // フォルダを階層順に並べ替えるための再帰関数
+  void addFoldersInOrder(int? parentId, int depth) {
+    for (var folder in allFolders.where((f) => f.parentFolderId == parentId)) {
+      folderWithDepthList.add(FolderWithDepth(folder, depth));
+      addFoldersInOrder(folder.id, depth + 1);
+    }
+  }
+
+  // ルートフォルダから処理を開始
+  addFoldersInOrder(null, 0);
+
+  return folderWithDepthList;
+}
+
 
