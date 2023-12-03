@@ -6,7 +6,6 @@ import 'new_page.dart'; // 新しいインポート
 import 'folder_page.dart'; // FolderPageをインポート
 
 void main() {
-  DBHelper.getFolders();
   runApp(MyApp());
 }
 

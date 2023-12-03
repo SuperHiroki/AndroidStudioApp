@@ -10,6 +10,7 @@ class FolderPage extends StatefulWidget {
 class _FolderPageState extends State<FolderPage> {
   List<dynamic> items = [];
   int? currentFolderId; // 現在選択されているフォルダのID
+  Map<int, bool> folderExpanded = {}; // フォルダの展開状態を追跡するマップ
 
   @override
   void initState() {
@@ -17,24 +18,26 @@ class _FolderPageState extends State<FolderPage> {
     _listItems();
   }
 
-  Future<void> _listItems({int? parentId}) async {
+  void toggleFolder(int folderId) {
+    currentFolderId = folderId;
+    setState(() {
+      folderExpanded[folderId] = !(folderExpanded[folderId] ?? false);
+    });
+  }
+
+  Future<List<dynamic>> _getFolderContents(int? folderId) async {
     var fetchedFolders = await DBHelper.getFolders();
     var fetchedPhotoItems = await DBHelper.getPhotoItems();
-    
-    print('CCCCCCCCCCC' + parentId.toString());
 
-    // 一時的にすべてのアイテムを保持するためのリストを作成
-    List<dynamic> tempItems = [];
+    List<dynamic> folderContents = [];
+    folderContents.addAll(fetchedFolders.where((folder) => folder.parentFolderId == folderId));
+    folderContents.addAll(fetchedPhotoItems.where((item) => item.folderId == folderId));
 
-    // 特定のparentIdに基づいてフォルダとフォトアイテムをフィルタリング
-    if (parentId == null) {
-      tempItems.addAll(fetchedFolders.where((folder) => folder.parentFolderId == null));
-      tempItems.addAll(fetchedPhotoItems.where((item) => item.folderId == null));
-    } else {
-      tempItems.addAll(fetchedFolders.where((folder) => folder.parentFolderId == parentId));
-      tempItems.addAll(fetchedPhotoItems.where((item) => item.folderId == parentId));
-    }
+    return folderContents;
+  }
 
+  Future<void> _listItems({int? parentId}) async {
+    List<dynamic> tempItems = await _getFolderContents(parentId);
     setState(() {
       items = tempItems; // itemsリストを更新
     });
@@ -55,19 +58,16 @@ class _FolderPageState extends State<FolderPage> {
             child: Text('キャンセル'),
             onPressed: () {
               Navigator.of(ctx).pop();
-              print('YYYY キャンセル');
             },
           ),
           TextButton(
             child: Text('作成'),
             onPressed: () async {
-              print('GGGGGGG currentFolderId ' + (currentFolderId?.toString() ?? 'null'));
               if (nameController.text.isNotEmpty) {
-                print('GGGGGGG currentFolderId ' + (currentFolderId?.toString() ?? 'null'));
                 Folder newFolder = Folder(
                   id: DateTime.now().millisecondsSinceEpoch, // 一意のIDを生成
                   name: nameController.text,
-                  parentFolderId: currentFolderId, // ここではルートフォルダとして扱う
+                  parentFolderId: currentFolderId,
                 );
                 await DBHelper.insertFolder(newFolder);
                 Navigator.of(ctx).pop();
@@ -106,22 +106,43 @@ class _FolderPageState extends State<FolderPage> {
       ),
       body: ListView.builder(
         itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return ListTile(
-            title: Text(item is Folder ? item.name : item.name),
-            onTap: () {
-              print('PPPPP ' + item.id.toString());
-              currentFolderId = item.id;
-              if (item is Folder) {
-                _listItems(parentId: item.id); // 選択されたフォルダ内のアイテムを表示
-                print('PPPPP ' + item.id.toString());
-              }
-              // フォトアイテムがタップされた場合の動作をここに追加
-            },
-          );
-        },
+        itemBuilder: (context, index) => buildFolderItem(items[index],0),
       ),
+    );
+  }
+
+  Widget buildFolderItem(dynamic item, int depth) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(left: depth * 20.0), // 階層に応じて左側のパディングを増加
+          child: ListTile(
+            title: Text(item.name),
+            onTap: () {
+              if (item is Folder) {
+                toggleFolder(item.id); // フォルダの展開/非展開を切り替え
+              } else {
+                // ファイルがタップされた場合の処理
+              }
+            },
+          ),
+        ),
+        if (item is Folder && folderExpanded[item.id] == true)
+          FutureBuilder<List<dynamic>>(
+            future: _getFolderContents(item.id),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Column(
+                  children: snapshot.data!.map((subItem) => buildFolderItem(subItem, depth + 1)).toList(),
+                );
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return CircularProgressIndicator();
+              }
+            },
+          ),
+      ],
     );
   }
 }

@@ -6,7 +6,6 @@ import 'folder.dart'; // Folder クラスをインポート
 
 class DBHelper {
   static Future<Database> database() async {
-    print('UUUUUUUUUUUUUUUUUU Future<Database> database()');
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'photo_items.db'),
