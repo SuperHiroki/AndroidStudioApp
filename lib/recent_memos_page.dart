@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'db_helper.dart';
 import 'photo_item.dart';
 import 'folder_page.dart';
+import 'memo_page.dart';
 
 class RecentMemosPage extends StatefulWidget {
   @override
@@ -29,6 +30,33 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
     });
   }
 
+  Future<void> _showPhotoItem(int? id, int? folderId) async {
+    try {
+      print('OOOOOOOOOOOOOOOOOOO Before Navigator.push');
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (context) {
+              // 条件に基づいて適切な画面を返す
+              if (id != null) {
+                return MemoPage(memoId: id, folderId: folderId);
+              } else {
+                return MemoPage(folderId: folderId);
+              }
+            }
+        ),
+      );
+      print('SSSSS   Result: $result');
+      if (result == true) {
+        print('RRRRRRRRRRRRRRR  Updating list');
+        _loadPhotoItems();  // リストを更新
+      } else {
+        print('BBBBBBBBBBBBB  No update needed');
+      }
+    } catch (e) {
+      print('NNNNNNNNNNNNNNNNNN Error occurred: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,7 +80,7 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
               '最終更新日: ${DateTime.fromMillisecondsSinceEpoch(item.updatedAt ?? item.createdAt ?? 0).toLocal()}',
             ),
             onTap: () {
-              // メモを開く処理を追加
+              _showPhotoItem(item.id, item.folderId);
             },
           );
         },
