@@ -14,6 +14,9 @@ class _FolderPageState extends State<FolderPage> {
   int? currentFolderId; // 現在選択されているフォルダのID
   Map<int, bool> folderExpanded = {}; // フォルダの展開状態を追跡するマップ
 
+  bool isMoveMode = false;
+  int? moveItemId; // 移動するアイテムのID
+
   @override
   void initState() {
     super.initState();
@@ -260,7 +263,35 @@ class _FolderPageState extends State<FolderPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('移動先のフォルダを選択'),
-          content: Text('ここに移動先のフォルダ選択UIを実装'),
+          content: FutureBuilder<List<Folder>>(
+            future: DBHelper.getFolders(), // 既存のフォルダを取得
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Text('フォルダがありません');
+              }
+              return Container(
+                height: 200.0, // 固定された高さ
+                width: double.maxFinite,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    var folder = snapshot.data![index];
+                    return ListTile(
+                      title: Text(folder.name),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        _moveItem(item, folder.id); // アイテムを選択したフォルダに移動
+                      },
+                    );
+                  },
+                ),
+              );
+            },
+          ),
           actions: <Widget>[
             TextButton(
               child: Text('キャンセル'),
@@ -273,22 +304,56 @@ class _FolderPageState extends State<FolderPage> {
   }
 
 
-
-
-
   Future<void> _moveItem(dynamic item, int newFolderId) async {
-    Navigator.pop(context);  // ダイアログを閉じる
     if (item is Folder) {
-      // フォルダ移動ロジックを実装
+      if (item.id == newFolderId || await _isDescendantOf(item.id, newFolderId)) {
+        // エラーメッセージを表示: 自分自身や子孫には移動できない
+        return;
+      }
+      // フォルダの移動処理
+      await DBHelper.updateFolderParent(item.id, newFolderId);
     } else if (item is PhotoItem) {
-      var newItem = item.copyWith(folderId: newFolderId); // 新しいインスタンスを作成
-      await DBHelper.updatePhotoItem(newItem);  // 更新
+      var newItem = item.copyWith(folderId: newFolderId);
+      await DBHelper.updatePhotoItem(newItem);
     }
-    _listItems();
+    _listItems(); // アイテムリストを更新
   }
 
 
 
+  void startMoveMode(dynamic item) {
+    setState(() {
+      isMoveMode = true;
+      moveItemId = item.id;
+    });
+  }
+
+  void onFolderTap(Folder folder) {
+    if (isMoveMode && moveItemId != null && moveItemId != folder.id) {
+      _moveItem(moveItemId, folder.id);
+    } else {
+      // 通常のフォルダ開閉処理
+      toggleFolder(folder.id);
+    }
+  }
+
+  Future<bool> _isDescendantOf(int folderId, int potentialParentId) async {
+    var subFolders = await DBHelper.getFolders();
+    for (var folder in subFolders) {
+      if (folder.parentFolderId == folderId) {
+        if (folder.id == potentialParentId || await _isDescendantOf(folder.id, potentialParentId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  // スナックバーでエラーメッセージを表示する例
+  void _showSnackbar(String message) {
+    final snackbar = SnackBar(content: Text(message));
+    ScaffoldMessenger.of(context).showSnackBar(snackbar);
+  }
 
 
 

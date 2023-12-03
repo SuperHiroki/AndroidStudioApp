@@ -6,7 +6,7 @@ import 'folder.dart'; // Folder クラスをインポート
 
 class DBHelper {
   static Future<Database> database() async {
-    print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY');
+    print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY database()');
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'photo_items.db'),
@@ -106,5 +106,17 @@ class DBHelper {
       whereArgs: [folderId],
     );
   }
+
+  // フォルダの親IDを更新するメソッド
+  static Future<void> updateFolderParent(int folderId, int newParentId) async {
+    final db = await DBHelper.database();
+    await db.update(
+      'folders',
+      {'parentFolderId': newParentId},
+      where: 'id = ?',
+      whereArgs: [folderId],
+    );
+  }
+
 
 }
