@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'db_helper.dart';
 import 'folder.dart';
+import 'photo_item.dart';
 import 'memo_page.dart';
 
 class FolderPage extends StatefulWidget {
@@ -86,7 +87,6 @@ class _FolderPageState extends State<FolderPage> {
 
   Future<void> _addNewPhotoItem(int? id, int? folderId) async {
     try {
-      print('OOOOOOOOOOOOOOOOOOO Before Navigator.push');
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
             builder: (context) {
@@ -99,23 +99,22 @@ class _FolderPageState extends State<FolderPage> {
             }
         ),
       );
-      print('SSSSS   Result: $result');
       if (result == true) {
-        print('RRRRRRRRRRRRRRR  Updating list');
         _listItems();  // リストを更新
-      } else {
-        print('BBBBBBBBBBBBB  No update needed');
       }
     } catch (e) {
       print('NNNNNNNNNNNNNNNNNN Error occurred: $e');
     }
   }
 
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Folders'),
+        title: Text('フォルダで管理'),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.create_new_folder), // フォルダ追加アイコン
@@ -138,39 +137,51 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
+
+
   Widget buildFolderItem(dynamic item, int depth) {
+    // アイテムの背景色を設定
+    Color backgroundColor = item is Folder
+        ? (item.id == currentFolderId ? Colors.blue[100]! : Colors.lightBlue[50]!)
+        : Colors.grey[200]!;
+
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.only(left: depth * 20.0), // 階層に応じて左側のパディングを増加
-          child: Container(
-            decoration: BoxDecoration(
-              color: item is Folder && item.id == currentFolderId ? Colors.blue[100] : null, // 背景色
-              border: Border.all(
-                color: Colors.grey, // 枠線の色
-                width: 1.0, // 枠線の太さ
+        GestureDetector(
+          onLongPress: () => showActionMenu(item), // 長押しでアクションメニューを表示
+          child: Padding(
+            padding: EdgeInsets.only(left: depth * 20.0), // 階層に応じたパディング
+            child: Container(
+              decoration: BoxDecoration(
+                color: backgroundColor, // 背景色
+                border: Border.all(
+                  color: Colors.grey, // 枠線の色
+                  width: 1.0, // 枠線の太さ
+                ),
+                borderRadius: BorderRadius.circular(4.0), // 角の丸み
               ),
-              borderRadius: BorderRadius.circular(4.0), // 枠線の角を丸くする
-            ),
-            child: ListTile(
-              title: Text(item.name),
-              onTap: () {
-                if (item is Folder) {
-                  toggleFolder(item.id); // フォルダの展開/非展開を切り替え
-                } else {
-                  _addNewPhotoItem(item.id, item.folderId);
-                }
-              },
+              child: ListTile(
+                title: Text(item.name),
+                onTap: () {
+                  if (item is Folder) {
+                    toggleFolder(item.id); // フォルダの展開/非展開を切り替え
+                  } else {
+                    _addNewPhotoItem(item.id, item.folderId); // メモページへの遷移
+                  }
+                },
+              ),
             ),
           ),
         ),
+        // サブアイテムの展開
         if (item is Folder && folderExpanded[item.id] == true)
           FutureBuilder<List<dynamic>>(
             future: _getFolderContents(item.id),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return Column(
-                  children: snapshot.data!.map((subItem) => buildFolderItem(subItem, depth + 1)).toList(),
+                  children: snapshot.data!.map((subItem) =>
+                      buildFolderItem(subItem, depth + 1)).toList(),
                 );
               } else if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
@@ -182,5 +193,104 @@ class _FolderPageState extends State<FolderPage> {
       ],
     );
   }
+
+
+
+
+
+
+
+
+
+
+  void showActionMenu(dynamic item) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          ListTile(
+            leading: Icon(Icons.delete),
+            title: Text('削除'),
+            onTap: () => _deleteItem(item),  // 削除処理を実行
+          ),
+          ListTile(
+            leading: Icon(Icons.move_to_inbox),
+            title: Text('移動'),
+            onTap: () => _showMoveItemDialog(item),  // 移動処理を実行
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteItem(dynamic item) async {
+    Navigator.pop(context); // モーダルを閉じる
+    if (item is Folder) {
+      await _deleteFolderRecursive(item.id); // 再帰的にフォルダ削除
+    } else if (item is PhotoItem) {
+      await DBHelper.deletePhotoItem(item.id); // フォトアイテム削除
+    }
+    _listItems(); // リストを更新
+  }
+
+  Future<void> _deleteFolderRecursive(int folderId) async {
+    // サブフォルダを取得して削除
+    List<Folder> subFolders = await DBHelper.getFolders()
+        .then((folders) => folders.where((f) => f.parentFolderId == folderId).toList());
+    for (var folder in subFolders) {
+      await _deleteFolderRecursive(folder.id); // 再帰的にサブフォルダを削除
+    }
+
+    // このフォルダ内のフォトアイテムを削除
+    List<PhotoItem> photoItems = await DBHelper.getPhotoItems()
+        .then((items) => items.where((item) => item.folderId == folderId).toList());
+    for (var item in photoItems) {
+      await DBHelper.deletePhotoItem(item.id); // フォトアイテムを削除
+    }
+
+    // フォルダ自体を削除
+    await DBHelper.deleteFolder(folderId);
+  }
+
+
+  void _showMoveItemDialog(dynamic item) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('移動先のフォルダを選択'),
+          content: Text('ここに移動先のフォルダ選択UIを実装'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('キャンセル'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+
+
+
+  Future<void> _moveItem(dynamic item, int newFolderId) async {
+    Navigator.pop(context);  // ダイアログを閉じる
+    if (item is Folder) {
+      // フォルダ移動ロジックを実装
+    } else if (item is PhotoItem) {
+      var newItem = item.copyWith(folderId: newFolderId); // 新しいインスタンスを作成
+      await DBHelper.updatePhotoItem(newItem);  // 更新
+    }
+    _listItems();
+  }
+
+
+
+
+
+
 }
 

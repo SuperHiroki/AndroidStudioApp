@@ -41,4 +41,28 @@ class PhotoItem {
       updatedAt: map['updatedAt'],
     );
   }
+
+
+
+  PhotoItem copyWith({
+    int? id,
+    String? name,
+    String? description,
+    String? imagePath,
+    int? folderId,
+    int? createdAt,
+    int? updatedAt,
+  }) {
+    return PhotoItem(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      imagePath: imagePath ?? this.imagePath,
+      folderId: folderId ?? this.folderId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+
 }

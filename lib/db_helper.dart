@@ -96,4 +96,15 @@ class DBHelper {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
+
+  // DBHelper クラスにフォルダ削除メソッドを追加（仮）
+  static Future<void> deleteFolder(int folderId) async {
+    final db = await DBHelper.database();
+    await db.delete(
+      'folders',
+      where: 'id = ?',
+      whereArgs: [folderId],
+    );
+  }
+
 }
