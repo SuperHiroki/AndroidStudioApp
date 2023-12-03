@@ -6,6 +6,7 @@ import 'folder.dart'; // Folder クラスをインポート
 
 class DBHelper {
   static Future<Database> database() async {
+    print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY');
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'photo_items.db'),
@@ -15,7 +16,7 @@ class DBHelper {
           'CREATE TABLE folders(id INTEGER PRIMARY KEY, name TEXT, parentFolderId INTEGER)',
         );
         return db.execute(
-          'CREATE TABLE photo_items(id INTEGER PRIMARY KEY, name TEXT, description TEXT, imagePath TEXT, folderId INTEGER)',
+            'CREATE TABLE photo_items(id INTEGER PRIMARY KEY, name TEXT, description TEXT, imagePath TEXT, folderId INTEGER, createdAt INTEGER, updatedAt INTEGER)'
         );
       },
       version: 1,
@@ -38,13 +39,13 @@ class DBHelper {
 
   static Future<int> insertPhotoItem(PhotoItem item) async {
     final db = await DBHelper.database();
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
     int id = await db.insert(
       'photo_items',
-      item.toMap(),
+      item.toMap()..addAll({'createdAt': timestamp, 'updatedAt': timestamp}),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    print('FFFFFFFFFFFFFFFFFFFF Item added: ${item.toMap()}'); // ログ出力
-    return id; // 挿入された行のIDを返す
+    return id;
   }
 
   // アイテムの取得
@@ -57,9 +58,10 @@ class DBHelper {
   // アイテムの更新
   static Future<void> updatePhotoItem(PhotoItem item) async {
     final db = await DBHelper.database();
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
     await db.update(
       'photo_items',
-      item.toMap(),
+      item.toMap()..addAll({'updatedAt': timestamp}),
       where: 'id = ?',
       whereArgs: [item.id],
     );

@@ -1,9 +1,7 @@
-//main.dart
+// main.dart
 import 'package:flutter/material.dart';
-import 'db_helper.dart'; // DBHelper クラスが定義されているファイルをインポート
-import 'trash/add_photo_item_form.dart'; // 新しいインポート
-import 'new_page.dart'; // 新しいインポート
-import 'folder_page.dart'; // FolderPageをインポート
+import 'recent_memos_page.dart'; // 新しいインポート
+import 'folder_page.dart'; // FolderPage クラスをインポート
 
 void main() {
   runApp(MyApp());
@@ -13,34 +11,64 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('最近使ったメモ'),
-          leading: Builder( // Builderを使用して適切なコンテキストを提供
-            builder: (BuildContext context) {
-              return IconButton(
-                icon: Icon(Icons.folder),
+      home: HomePage(), // 新しいホームページを設定
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('メモ帳アプリ'),
+        centerTitle: true, // タイトルを中央に配置
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0), // ボタンの周りにパディングを追加
+              child: ElevatedButton(
                 onPressed: () {
-                  // FolderPageに移動
-                  Navigator.of(context).push(
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RecentMemosPage()),
+                  );
+                },
+                child: Text(
+                  '最近使ったメモ',
+                  style: TextStyle(
+                    fontSize: 25, // テキストサイズを20に設定
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(350, 90), // ボタンのサイズを設定
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
                     MaterialPageRoute(builder: (context) => FolderPage()),
                   );
                 },
-              );
-            },
-          ),
-        ),
-        body: AddPhotoItemForm(),
-        floatingActionButton: Builder(
-          builder: (context) => FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NewPage()),
-              );
-            },
-            child: Icon(Icons.navigation),
-          ),
+                child: Text(
+                  'フォルダで管理',
+                  style: TextStyle(
+                    fontSize: 25, // テキストサイズを20に設定
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(350, 90), // ボタンのサイズを設定
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

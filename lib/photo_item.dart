@@ -4,6 +4,8 @@ class PhotoItem {
   final String description;
   final String imagePath;
   final int? folderId; // このアイテムが属するフォルダのID
+  final int? createdAt;
+  final int? updatedAt;
 
   PhotoItem({
     required this.id,
@@ -11,6 +13,8 @@ class PhotoItem {
     required this.description,
     required this.imagePath,
     required this.folderId, // コンストラクタにfolderIdを追加
+    this.createdAt,
+    this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -19,7 +23,9 @@ class PhotoItem {
       'name': name,
       'description': description,
       'imagePath': imagePath,
-      'folderId': folderId, // MapにfolderIdを含める
+      'folderId': folderId,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
     };
   }
 
@@ -31,6 +37,8 @@ class PhotoItem {
       description: map['description'],
       imagePath: map['imagePath'],
       folderId: map['folderId'], // MapからfolderIdを読み込む
+      createdAt: map['createdAt'],
+      updatedAt: map['updatedAt'],
     );
   }
 }

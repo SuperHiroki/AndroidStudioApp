@@ -77,7 +77,7 @@ class _MemoPageState extends State<MemoPage> {
         name: title,
         description: description,
         imagePath: "default",
-        folderId: widget.folderId ?? 0,
+        folderId: _folderId,
       );
       DBHelper.updatePhotoItem(updatedItem);
       print('Memo updated: ${_memoId}');
