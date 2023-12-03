@@ -1,15 +1,16 @@
-//photo_item.dart
 class PhotoItem {
   final int id;
   final String name;
   final String description;
   final String imagePath;
+  final int folderId; // このアイテムが属するフォルダのID
 
   PhotoItem({
     required this.id,
     required this.name,
     required this.description,
-    required this.imagePath
+    required this.imagePath,
+    required this.folderId, // コンストラクタにfolderIdを追加
   });
 
   Map<String, dynamic> toMap() {
@@ -18,6 +19,7 @@ class PhotoItem {
       'name': name,
       'description': description,
       'imagePath': imagePath,
+      'folderId': folderId, // MapにfolderIdを含める
     };
   }
 
@@ -28,6 +30,7 @@ class PhotoItem {
       name: map['name'],
       description: map['description'],
       imagePath: map['imagePath'],
+      folderId: map['folderId'], // MapからfolderIdを読み込む
     );
   }
 }

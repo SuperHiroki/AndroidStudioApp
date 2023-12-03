@@ -1,9 +1,8 @@
-//add_photo_item_form.dart
+// add_photo_item_form.dart
 import 'package:flutter/material.dart';
 import 'db_helper.dart';
 import 'photo_item.dart';
 
-// AddPhotoItemForm クラスの定義
 class AddPhotoItemForm extends StatefulWidget {
   @override
   _AddPhotoItemFormState createState() => _AddPhotoItemFormState();
@@ -14,6 +13,7 @@ class _AddPhotoItemFormState extends State<AddPhotoItemForm> {
   String name = '';
   String description = '';
   String imagePath = '';
+  int folderId = 1; // 仮のfolderIdの値
 
   void _submitData() {
     if (_formKey.currentState!.validate()) {
@@ -23,6 +23,7 @@ class _AddPhotoItemFormState extends State<AddPhotoItemForm> {
         name: name,
         description: description,
         imagePath: imagePath,
+        folderId: folderId, // folderIdを指定
       );
       DBHelper.insertPhotoItem(newItem);
     }
@@ -61,3 +62,4 @@ class _AddPhotoItemFormState extends State<AddPhotoItemForm> {
     );
   }
 }
+
