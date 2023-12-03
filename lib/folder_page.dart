@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'db_helper.dart';
 import 'folder.dart';
+import 'memo_page.dart';
 
 class FolderPage extends StatefulWidget {
   @override
@@ -71,6 +72,9 @@ class _FolderPageState extends State<FolderPage> {
                 );
                 await DBHelper.insertFolder(newFolder);
                 Navigator.of(ctx).pop();
+                if (currentFolderId != null) {
+                  toggleFolder(currentFolderId!);
+                }
                 _listItems(); // フォルダリストを更新
               }
             },
@@ -80,8 +84,31 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
-  Future<void> _addNewPhotoItem() async {
-    // 新規メモ追加のロジックをここに追加
+  Future<void> _addNewPhotoItem(int? id, int? folderId) async {
+    try {
+      print('OOOOOOOOOOOOOOOOOOO Before Navigator.push');
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+            builder: (context) {
+              // 条件に基づいて適切な画面を返す
+              if (id != null) {
+                return MemoPage(memoId: id, folderId: folderId);
+              } else {
+                return MemoPage(folderId: folderId);
+              }
+            }
+        ),
+      );
+      print('SSSSS   Result: $result');
+      if (result == true) {
+        print('RRRRRRRRRRRRRRR  Updating list');
+        _listItems();  // リストを更新
+      } else {
+        print('BBBBBBBBBBBBB  No update needed');
+      }
+    } catch (e) {
+      print('NNNNNNNNNNNNNNNNNN Error occurred: $e');
+    }
   }
 
   @override
@@ -99,7 +126,7 @@ class _FolderPageState extends State<FolderPage> {
           IconButton(
             icon: Icon(Icons.add_photo_alternate), // ファイル追加アイコン
             onPressed: () {
-              _addNewPhotoItem(); // ファイル追加機能を呼び出す
+              _addNewPhotoItem(null, currentFolderId);  // ファイル追加機能を呼び出す
             },
           ),
         ],
@@ -116,15 +143,25 @@ class _FolderPageState extends State<FolderPage> {
       children: [
         Padding(
           padding: EdgeInsets.only(left: depth * 20.0), // 階層に応じて左側のパディングを増加
-          child: ListTile(
-            title: Text(item.name),
-            onTap: () {
-              if (item is Folder) {
-                toggleFolder(item.id); // フォルダの展開/非展開を切り替え
-              } else {
-                // ファイルがタップされた場合の処理
-              }
-            },
+          child: Container(
+            decoration: BoxDecoration(
+              color: item is Folder && item.id == currentFolderId ? Colors.blue[100] : null, // 背景色
+              border: Border.all(
+                color: Colors.grey, // 枠線の色
+                width: 1.0, // 枠線の太さ
+              ),
+              borderRadius: BorderRadius.circular(4.0), // 枠線の角を丸くする
+            ),
+            child: ListTile(
+              title: Text(item.name),
+              onTap: () {
+                if (item is Folder) {
+                  toggleFolder(item.id); // フォルダの展開/非展開を切り替え
+                } else {
+                  _addNewPhotoItem(item.id, item.folderId);
+                }
+              },
+            ),
           ),
         ),
         if (item is Folder && folderExpanded[item.id] == true)

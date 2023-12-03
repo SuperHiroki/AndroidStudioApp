@@ -22,14 +22,29 @@ class DBHelper {
     );
   }
 
-  static Future<void> insertPhotoItem(PhotoItem item) async {
+  static Future<PhotoItem?> getPhotoItemById(int id) async {
     final db = await DBHelper.database();
-    await db.insert(
+    final List<Map<String, dynamic>> maps = await db.query(
+      'photo_items',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return PhotoItem.fromMap(maps.first);
+    }
+    return null;
+  }
+
+
+  static Future<int> insertPhotoItem(PhotoItem item) async {
+    final db = await DBHelper.database();
+    int id = await db.insert(
       'photo_items',
       item.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
     print('FFFFFFFFFFFFFFFFFFFF Item added: ${item.toMap()}'); // ログ出力
+    return id; // 挿入された行のIDを返す
   }
 
   // アイテムの取得
