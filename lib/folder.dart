@@ -2,19 +2,19 @@ class Folder {
   final int id;
   final String name;
   final int? parentFolderId; // 親フォルダのID（ルートフォルダの場合はnull）
-  int depth = 0; // フォルダの深さを表すプロパティ
+  int depth = 0;
 
   Folder({
     required this.id,
     required this.name,
-    this.parentFolderId, // 親フォルダのIDをオプショナルで追加
+    this.parentFolderId,
   });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
-      'parentFolderId': parentFolderId, // MapにparentFolderIdを含める
+      'parentFolderId': parentFolderId,
     };
   }
 
@@ -23,7 +23,7 @@ class Folder {
     return Folder(
       id: map['id'],
       name: map['name'],
-      parentFolderId: map['parentFolderId'], // MapからparentFolderIdを読み込む
+      parentFolderId: map['parentFolderId'],
     );
   }
 }

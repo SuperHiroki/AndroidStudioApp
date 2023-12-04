@@ -13,8 +13,7 @@ class _FolderPageState extends State<FolderPage> {
   List<dynamic> items = [];
   int? currentFolderId; // 現在選択されているフォルダのID
   Map<int, bool> folderExpanded = {}; // フォルダの展開状態を追跡するマップ
-
-  bool isMoveMode = false;
+  bool isMoveMode = false; //フォルダやアイテムの移動フラグ
   int? moveItemId; // 移動するアイテムのID
 
   @override
@@ -23,6 +22,7 @@ class _FolderPageState extends State<FolderPage> {
     _listItems();
   }
 
+  //トグルを展開する
   void toggleFolder(int folderId) {
     currentFolderId = folderId;
     setState(() {
@@ -30,6 +30,7 @@ class _FolderPageState extends State<FolderPage> {
     });
   }
 
+  //フォルダとアイテムを全て取得
   Future<List<dynamic>> _getFolderContents(int? folderId) async {
     var fetchedFolders = await DBHelper.getFolders();
     var fetchedPhotoItems = await DBHelper.getPhotoItems();
@@ -41,13 +42,15 @@ class _FolderPageState extends State<FolderPage> {
     return folderContents;
   }
 
+  //アイテムを更新してウィジェットに反映する。
   Future<void> _listItems({int? parentId}) async {
     List<dynamic> tempItems = await _getFolderContents(parentId);
     setState(() {
-      items = tempItems; // itemsリストを更新
+      items = tempItems;
     });
   }
 
+  //新規フォルダを作るときのアラートダイアログ
   Future<void> _addNewFolder() async {
     TextEditingController nameController = TextEditingController();
     await showDialog(
@@ -88,6 +91,7 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
+  //メモ作成（編集）ページに移動する
   Future<void> _addNewPhotoItem(int? id, int? folderId) async {
     try {
       final result = await Navigator.of(context).push(
@@ -110,9 +114,7 @@ class _FolderPageState extends State<FolderPage> {
     }
   }
 
-
-
-
+  //ウィジェット
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -155,14 +157,10 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
-
-
-
+  //再帰的に実行することでフォルダを無限に展開することができる。
   Widget buildFolderItem(dynamic item, int depth) {
     // アイテムの背景色を設定
-    Color backgroundColor = item is Folder
-        ? (item.id == currentFolderId ? Colors.blue[100]! : Colors.grey[350]!)
-        : Colors.grey[200]!;
+    Color backgroundColor = item is Folder ? (item.id == currentFolderId ? Colors.blue[100]! : Colors.grey[350]!) : Colors.grey[100]!;
 
     return Column(
       children: [
@@ -213,15 +211,7 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
-
-
-
-
-
-
-
-
-
+  //長押しで発火する動作。
   void showActionMenu(dynamic item) {
     showModalBottomSheet(
       context: context,
@@ -243,6 +233,7 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
+  //アイテムを削除する
   Future<void> _deleteItem(dynamic item) async {
     Navigator.pop(context); // モーダルを閉じる
     if (item is Folder) {
@@ -253,17 +244,16 @@ class _FolderPageState extends State<FolderPage> {
     _listItems(); // リストを更新
   }
 
+  //フォルダを再帰的に削除するための処理
   Future<void> _deleteFolderRecursive(int folderId) async {
     // サブフォルダを取得して削除
-    List<Folder> subFolders = await DBHelper.getFolders()
-        .then((folders) => folders.where((f) => f.parentFolderId == folderId).toList());
+    List<Folder> subFolders = await DBHelper.getFolders().then((folders) => folders.where((f) => f.parentFolderId == folderId).toList());
     for (var folder in subFolders) {
       await _deleteFolderRecursive(folder.id); // 再帰的にサブフォルダを削除
     }
 
     // このフォルダ内のフォトアイテムを削除
-    List<PhotoItem> photoItems = await DBHelper.getPhotoItems()
-        .then((items) => items.where((item) => item.folderId == folderId).toList());
+    List<PhotoItem> photoItems = await DBHelper.getPhotoItems().then((items) => items.where((item) => item.folderId == folderId).toList());
     for (var item in photoItems) {
       await DBHelper.deletePhotoItem(item.id); // フォトアイテムを削除
     }
@@ -272,6 +262,7 @@ class _FolderPageState extends State<FolderPage> {
     await DBHelper.deleteFolder(folderId);
   }
 
+  //移動のためのダイアログ（フォルダやアイテムの階層関係が表示される）
   void _showMoveItemDialog(dynamic item) {
     showDialog(
       context: context,
@@ -322,13 +313,12 @@ class _FolderPageState extends State<FolderPage> {
     );
   }
 
-
-
-
+  //アイテムの格納場所を変更
   Future<void> _moveItem(dynamic item, int newFolderId) async {
     if (item is Folder) {
       if (item.id == newFolderId || await _isDescendantOf(item.id, newFolderId)) {
-        // エラーメッセージを表示: 自分自身や子孫には移動できない
+        _showSnackbar('Do not move to its Descendants!!');
+        print('PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP Do not move to its Descendants!!');
         return;
       }
       // フォルダの移動処理
@@ -340,8 +330,7 @@ class _FolderPageState extends State<FolderPage> {
     _listItems(); // アイテムリストを更新
   }
 
-
-
+  //移動モードのフラグを切り替え
   void startMoveMode(dynamic item) {
     setState(() {
       isMoveMode = true;
@@ -349,6 +338,8 @@ class _FolderPageState extends State<FolderPage> {
     });
   }
 
+  /*
+  //フォルダにタップした時
   void onFolderTap(Folder folder) {
     if (isMoveMode && moveItemId != null && moveItemId != folder.id) {
       _moveItem(moveItemId, folder.id);
@@ -357,7 +348,9 @@ class _FolderPageState extends State<FolderPage> {
       toggleFolder(folder.id);
     }
   }
+  */
 
+  //この処理はめちゃくちゃ重要です。
   Future<bool> _isDescendantOf(int folderId, int potentialParentId) async {
     var subFolders = await DBHelper.getFolders();
     for (var folder in subFolders) {
@@ -375,9 +368,6 @@ class _FolderPageState extends State<FolderPage> {
     final snackbar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
-
-
-
 }
 
 // フォルダの階層情報を持つクラス
@@ -388,8 +378,7 @@ class FolderWithDepth {
   FolderWithDepth(this.folder, this.depth);
 }
 
-
-
+//リストによって順番を維持しつつ、フォルダの階層情報を持つクラスのリストを作成する。
 List<FolderWithDepth> addDepthToFolderList(List<Folder> allFolders) {
   List<FolderWithDepth> folderWithDepthList = [];
 
@@ -400,7 +389,6 @@ List<FolderWithDepth> addDepthToFolderList(List<Folder> allFolders) {
       addFoldersInOrder(folder.id, depth + 1);
     }
   }
-
   // ルートフォルダから処理を開始
   addFoldersInOrder(null, 0);
 

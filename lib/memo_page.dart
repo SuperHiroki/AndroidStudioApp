@@ -48,7 +48,6 @@ class _MemoPageState extends State<MemoPage> {
     _debounce = Timer(const Duration(milliseconds: 500), _saveMemo);
   }
 
-
   void _saveMemo() {
     String title = _titleController.text;
     String description = _textController.text;
@@ -69,7 +68,7 @@ class _MemoPageState extends State<MemoPage> {
         setState(() {
           _memoId = newId; // 新しいIDをwidget.memoIdにセット
         });
-        print('New memo saved with id: $newId');
+        print('MMMMMMMMMMM New memo saved with id: $newId');
       });
     } else {
       PhotoItem updatedItem = PhotoItem(
@@ -80,17 +79,14 @@ class _MemoPageState extends State<MemoPage> {
         folderId: _folderId,
       );
       DBHelper.updatePhotoItem(updatedItem);
-      print('Memo updated: ${_memoId}');
+      print('MMMMMMMMMMM Memo updated: ${_memoId}');
     }
-    print('MMMMMMMMMMM Memo saved: ${_titleController.text}');
   }
-
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        print('IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII');
         _saveMemo();
         Navigator.pop(context, true); // デバイスのバックボタンに true を渡す
         return false; // 既定の戻る動作をキャンセル
@@ -100,7 +96,6 @@ class _MemoPageState extends State<MemoPage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              print('QQQQQQQQQQQQQQQQQQQQQQQQQQQQ');
               _saveMemo();
               Navigator.pop(context, true); // 戻るボタンに true を渡す
             },
@@ -130,7 +125,6 @@ class _MemoPageState extends State<MemoPage> {
     );
   }
 
-
   @override
   void dispose() {
     _titleController.removeListener(_saveMemo);
@@ -139,5 +133,4 @@ class _MemoPageState extends State<MemoPage> {
     _textController.dispose();
     super.dispose();
   }
-
 }

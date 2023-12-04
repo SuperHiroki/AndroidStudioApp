@@ -1,12 +1,12 @@
 //db_helper.dart
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'photo_item.dart'; // PhotoItem クラスをインポート
-import 'folder.dart'; // Folder クラスをインポート
+import 'photo_item.dart';
+import 'folder.dart';
 
 class DBHelper {
+  //大元の接続
   static Future<Database> database() async {
-    print('YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY database()');
     final dbPath = await getDatabasesPath();
     return openDatabase(
       join(dbPath, 'photo_items.db'),
@@ -23,6 +23,9 @@ class DBHelper {
     );
   }
 
+  ///////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////
+  //IDでアイテムを取得
   static Future<PhotoItem?> getPhotoItemById(int id) async {
     final db = await DBHelper.database();
     final List<Map<String, dynamic>> maps = await db.query(
@@ -36,7 +39,7 @@ class DBHelper {
     return null;
   }
 
-
+  //新規アイテムを追加して、idを返す。
   static Future<int> insertPhotoItem(PhotoItem item) async {
     final db = await DBHelper.database();
     int timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -48,7 +51,7 @@ class DBHelper {
     return id;
   }
 
-  // アイテムの取得
+  //全てのアイテムを取得する。
   static Future<List<PhotoItem>> getPhotoItems() async {
     final db = await DBHelper.database();
     final List<Map<String, dynamic>> items = await db.query('photo_items');
@@ -77,18 +80,17 @@ class DBHelper {
     );
   }
 
-
-
-  // フォルダの取得
+  ///////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////
+  // 全てのフォルダの取得
   static Future<List<Folder>> getFolders() async {
     final db = await DBHelper.database();
     final List<Map<String, dynamic>> foldersMap = await db.query('folders');
     return List.generate(foldersMap.length, (i) => Folder.fromMap(foldersMap[i]));
   }
 
-
+  //フォルダ追加
   static Future<void> insertFolder(Folder folder) async {
-    print('SSSSSSSSSS insertFolder');
     final db = await DBHelper.database();
     await db.insert(
       'folders',
@@ -97,7 +99,7 @@ class DBHelper {
     );
   }
 
-  // DBHelper クラスにフォルダ削除メソッドを追加（仮）
+  // フォルダ削除
   static Future<void> deleteFolder(int folderId) async {
     final db = await DBHelper.database();
     await db.delete(
@@ -117,6 +119,4 @@ class DBHelper {
       whereArgs: [folderId],
     );
   }
-
-
 }

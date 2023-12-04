@@ -32,7 +32,6 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
 
   Future<void> _showPhotoItem(int? id, int? folderId) async {
     try {
-      print('OOOOOOOOOOOOOOOOOOO Before Navigator.push');
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
             builder: (context) {
@@ -45,18 +44,16 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
             }
         ),
       );
-      print('SSSSS   Result: $result');
+      print('SSSSSSSSSSSSSSSSSSS   Result: $result');
       if (result == true) {
-        print('RRRRRRRRRRRRRRR  Updating list');
-        _loadPhotoItems();  // リストを更新
-      } else {
-        print('BBBBBBBBBBBBB  No update needed');
+        _loadPhotoItems();
       }
     } catch (e) {
       print('NNNNNNNNNNNNNNNNNN Error occurred: $e');
     }
   }
 
+  /*
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,5 +91,55 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
       ),
     );
   }
-
+  */
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('最近使ったメモ'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      body: ListView.builder(
+        itemCount: photoItems.length,
+        itemBuilder: (context, index) {
+          PhotoItem item = photoItems[index];
+          return Container(
+            margin: EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(5.0),
+            ),
+            child: ListTile(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(item.name),
+                  SizedBox(height: 4), // タイトルと最終更新日の間のスペース
+                  Text(
+                    '最終更新日: ${DateTime.fromMillisecondsSinceEpoch(item.updatedAt ?? item.createdAt ?? 0).toLocal()}',
+                    style: TextStyle(
+                      fontSize: 12, // 小さいフォントサイズ
+                      color: Colors.grey, // 色を変更して区別
+                    ),
+                  ),
+                ],
+              ),
+              subtitle: Text(
+                item.description,
+                style: TextStyle(fontSize: 14), // サブタイトルのフォントサイズを調整
+              ),
+              onTap: () {
+                _showPhotoItem(item.id, item.folderId);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
 }

@@ -42,8 +42,6 @@ class PhotoItem {
     );
   }
 
-
-
   PhotoItem copyWith({
     int? id,
     String? name,
@@ -63,6 +61,4 @@ class PhotoItem {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
-
-
 }
