@@ -63,9 +63,9 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
       appBar: AppBar(
         title: Text('最近使ったメモ'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back), // アイコンを戻る矢印に変更
+          icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(); // 前のページに戻る
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -73,18 +73,26 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
         itemCount: photoItems.length,
         itemBuilder: (context, index) {
           PhotoItem item = photoItems[index];
-          return ListTile(
-            title: Text(item.name),
-            subtitle: Text(item.description),
-            trailing: Text(
-              '最終更新日: ${DateTime.fromMillisecondsSinceEpoch(item.updatedAt ?? item.createdAt ?? 0).toLocal()}',
+          return Container(
+            margin: EdgeInsets.all(8.0), // コンテナの外側の余白
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey), // 枠線の色と太さ
+              borderRadius: BorderRadius.circular(5.0), // 角の丸み
             ),
-            onTap: () {
-              _showPhotoItem(item.id, item.folderId);
-            },
+            child: ListTile(
+              title: Text(item.name),
+              subtitle: Text(item.description),
+              trailing: Text(
+                '最終更新日: ${DateTime.fromMillisecondsSinceEpoch(item.updatedAt ?? item.createdAt ?? 0).toLocal()}',
+              ),
+              onTap: () {
+                _showPhotoItem(item.id, item.folderId);
+              },
+            ),
           );
         },
       ),
     );
   }
+
 }

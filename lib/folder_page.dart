@@ -120,32 +120,48 @@ class _FolderPageState extends State<FolderPage> {
         title: Text('フォルダで管理'),
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.create_new_folder), // フォルダ追加アイコン
+            icon: Icon(Icons.create_new_folder),
             onPressed: () {
-              _addNewFolder(); // フォルダ追加機能を呼び出す
+              _addNewFolder();
             },
           ),
           IconButton(
-            icon: Icon(Icons.add_photo_alternate), // ファイル追加アイコン
+            icon: Icon(Icons.add_photo_alternate),
             onPressed: () {
-              _addNewPhotoItem(null, currentFolderId);  // ファイル追加機能を呼び出す
+              _addNewPhotoItem(null, currentFolderId);
             },
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (context, index) => buildFolderItem(items[index], 0),
+      body: Column(
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                currentFolderId = null;
+              });
+              _listItems();
+            },
+            child: Text('ルートディレクトリを選択する'),
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: items.length,
+              itemBuilder: (context, index) => buildFolderItem(items[index], 0),
+            ),
+          ),
+        ],
       ),
     );
   }
 
 
 
+
   Widget buildFolderItem(dynamic item, int depth) {
     // アイテムの背景色を設定
     Color backgroundColor = item is Folder
-        ? (item.id == currentFolderId ? Colors.blue[100]! : Colors.lightBlue[50]!)
+        ? (item.id == currentFolderId ? Colors.blue[100]! : Colors.grey[350]!)
         : Colors.grey[200]!;
 
     return Column(
