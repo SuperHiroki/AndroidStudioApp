@@ -53,45 +53,6 @@ class _RecentMemosPageState extends State<RecentMemosPage> {
     }
   }
 
-  /*
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('最近使ったメモ'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-      ),
-      body: ListView.builder(
-        itemCount: photoItems.length,
-        itemBuilder: (context, index) {
-          PhotoItem item = photoItems[index];
-          return Container(
-            margin: EdgeInsets.all(8.0), // コンテナの外側の余白
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey), // 枠線の色と太さ
-              borderRadius: BorderRadius.circular(5.0), // 角の丸み
-            ),
-            child: ListTile(
-              title: Text(item.name),
-              subtitle: Text(item.description),
-              trailing: Text(
-                '最終更新日: ${DateTime.fromMillisecondsSinceEpoch(item.updatedAt ?? item.createdAt ?? 0).toLocal()}',
-              ),
-              onTap: () {
-                _showPhotoItem(item.id, item.folderId);
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-  */
   @override
   Widget build(BuildContext context) {
     return Scaffold(

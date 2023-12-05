@@ -338,18 +338,6 @@ class _FolderPageState extends State<FolderPage> {
     });
   }
 
-  /*
-  //フォルダにタップした時
-  void onFolderTap(Folder folder) {
-    if (isMoveMode && moveItemId != null && moveItemId != folder.id) {
-      _moveItem(moveItemId, folder.id);
-    } else {
-      // 通常のフォルダ開閉処理
-      toggleFolder(folder.id);
-    }
-  }
-  */
-
   //この処理はめちゃくちゃ重要です。
   Future<bool> _isDescendantOf(int folderId, int potentialParentId) async {
     var subFolders = await DBHelper.getFolders();
